@@ -15,13 +15,8 @@ import java.time.Instant;
  * Entity representing a customer's wait entry in the restaurant queue
  */
 @Entity
-@jakarta.persistence.Table(
-        name = "wait_entry",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uq_tracking_per_restaurant",
-                        columnNames = {"restaurant_id", "tracking_code"})
-        }
-)
+@jakarta.persistence.Table(name = "wait_entry", uniqueConstraints = {@UniqueConstraint(name =
+        "uq_tracking_per_restaurant", columnNames = {"restaurant_id", "tracking_code"})})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -100,13 +95,25 @@ public class WaitEntry {
         this.assignedTable = table;
     }
 
+    public void markForcedNotified(Table table) {
+        validateSameRestaurant(table);
+        this.status = WaitStatus.NOTIFIED;
+        this.notifiedAt = Instant.now();
+        this.assignedTable = table;
+    }
+
     public void markSeated() {
-        if (status != WaitStatus.WAITING) {
-            throw new IllegalStateException("Only WAITING entry can be notified");
+        if (status != WaitStatus.NOTIFIED) {
+            throw new IllegalStateException("Only NOTIFIED entry can be seated");
         }
         if (assignedTable == null) {
             throw new IllegalStateException("Cannot seat without assigned table");
         }
+        this.status = WaitStatus.SEATED;
+        this.seatedAt = Instant.now();
+    }
+
+    public void markForcedSeated() {
         this.status = WaitStatus.SEATED;
         this.seatedAt = Instant.now();
     }
@@ -140,9 +147,7 @@ public class WaitEntry {
         if (this.status == WaitStatus.SEATED) {
             throw new IllegalStateException("Customer already seated");
         }
-        if (this.status == WaitStatus.COMPLETED ||
-                this.status == WaitStatus.CANCELLED ||
-                this.status == WaitStatus.SKIPPED) {
+        if (this.status == WaitStatus.COMPLETED || this.status == WaitStatus.CANCELLED || this.status == WaitStatus.SKIPPED) {
             throw new IllegalStateException("Customer cannot be seated");
         }
 

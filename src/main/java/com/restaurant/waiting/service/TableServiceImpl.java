@@ -30,15 +30,39 @@ public class TableServiceImpl implements TableService {
     private final WaitEntryRepository waitEntryRepository;
     private final TableMapper mapper;
 
+    @Transactional
+    public void forceNotify(String restaurantCode, Long tableId, String trackingCode) {
+        Restaurant restaurant = restaurantService.getOrThrow(restaurantCode);
+
+        Table table =
+                tableRepository.findByIdAndRestaurant(tableId, restaurant).orElseThrow(() -> new IllegalArgumentException("Table not found"));
+
+        if (table.getStatus() != TableStatus.AVAILABLE) {
+            throw new IllegalStateException("Table must be AVAILABLE to notify");
+        }
+
+        WaitEntry entry =
+                waitEntryRepository.findByRestaurantAndTrackingCode(restaurant, trackingCode).orElseThrow(() -> new IllegalStateException("Customer not found"));
+
+        if (entry.getStatus() != WaitStatus.WAITING) {
+            throw new IllegalStateException("Customer must be WAITING");
+        }
+
+        // manual override of eligibility, NOT lifecycle
+        entry.markForcedNotified(table);
+        table.markReserved();
+    }
+
     @Override
     public void seatCustomer(String restaurantCode, Long tableId) {
         Restaurant restaurant = restaurantService.getOrThrow(restaurantCode);
-        Table table = tableRepository.findByIdAndRestaurant(tableId, restaurant).orElseThrow(() -> new IllegalArgumentException("Table not found"));
+        Table table =
+                tableRepository.findByIdAndRestaurant(tableId, restaurant).orElseThrow(() -> new IllegalArgumentException("Table not found"));
         if (table.getStatus() != TableStatus.RESERVED) {
             throw new IllegalStateException("Table not reserved");
         }
-        WaitEntry waitEntry = waitEntryRepository.findNotifiedForTable(restaurant.getId(), tableId).orElseThrow(() ->
-                new IllegalStateException("No notified customer for this table"));
+        WaitEntry waitEntry =
+                waitEntryRepository.findNotifiedForTable(restaurant.getId(), tableId).orElseThrow(() -> new IllegalStateException("No notified customer for this table"));
         waitEntry.markSeated();
         table.markOccupied();
     }
@@ -77,16 +101,12 @@ public class TableServiceImpl implements TableService {
      */
     @Override
     @Transactional
-    public Optional<TableAllocationResponse> allocate(
-            String restaurantCode,
-            Long tableId
-    ) {
+    public Optional<TableAllocationResponse> allocate(String restaurantCode, Long tableId) {
         Restaurant restaurant = restaurantService.getOrThrow(restaurantCode);
         log.info("TableServiceImpl::allocate -> restaurant = {}", restaurant);
 
-        Table table = tableRepository
-                .findByIdAndRestaurant(tableId, restaurant)
-                .orElseThrow(() -> new IllegalArgumentException("Table not found"));
+        Table table =
+                tableRepository.findByIdAndRestaurant(tableId, restaurant).orElseThrow(() -> new IllegalArgumentException("Table not found"));
 
         if (table.getStatus() != TableStatus.AVAILABLE) {
             throw new IllegalStateException("Table must be AVAILABLE to allocate");
@@ -94,13 +114,8 @@ public class TableServiceImpl implements TableService {
 
         log.info("TableServiceImpl::allocate -> table.getCapacity() = {}", table.getCapacity());
         log.info("TableServiceImpl::allocate -> table.isFamilyOnly() = {}", table.isFamilyOnly());
-        Optional<WaitEntry> next =
-                waitEntryRepository.findNextEligibleForTable(
-                                restaurant,
-                                table.getCapacity(),
-                                table.isFamilyOnly(), PageRequest.of(0, 1)
-                        ).stream()
-                        .findFirst();
+        Optional<WaitEntry> next = waitEntryRepository.findNextEligibleForTable(restaurant, table.getCapacity(),
+                table.isFamilyOnly(), PageRequest.of(0, 1)).stream().findFirst();
 
         if (next.isEmpty()) {
             log.info("TableServiceImpl::allocate -> next.isEmpty() = {}", next.isEmpty());
@@ -113,11 +128,8 @@ public class TableServiceImpl implements TableService {
         entry.markNotified(table);
         table.markReserved();
 
-        return Optional.of(
-                mapper.toTableAllocationResponse(entry, table)
-        );
+        return Optional.of(mapper.toTableAllocationResponse(entry, table));
     }
-
 
     /**
      * RESERVED -> OCCUPIED
@@ -148,37 +160,27 @@ public class TableServiceImpl implements TableService {
      */
     @Override
     @Transactional
-    public Optional<TableAllocationResponse> releaseAndAllocate(
-            String restaurantCode,
-            Long tableId
-    ) {
+    public Optional<TableAllocationResponse> releaseAndAllocate(String restaurantCode, Long tableId) {
         Restaurant restaurant = restaurantService.getOrThrow(restaurantCode);
 
-        Table table = tableRepository
-                .findByIdAndRestaurant(tableId, restaurant)
-                .orElseThrow(() -> new IllegalArgumentException("Table not found"));
+        Table table =
+                tableRepository.findByIdAndRestaurant(tableId, restaurant).orElseThrow(() -> new IllegalArgumentException("Table not found"));
 
         if (table.getStatus() != TableStatus.OCCUPIED) {
-            throw new IllegalStateException(
-                    "Table must be OCCUPIED to release"
-            );
+            throw new IllegalStateException("Table must be OCCUPIED to release");
         }
-        // 1️⃣ Find seated customer
-        WaitEntry seated = waitEntryRepository
-                .findSeatedByTable(table)
-                .orElseThrow(() -> new IllegalStateException("No seated customer"));
+        // 1 Find seated customer
+        WaitEntry seated = waitEntryRepository.findSeatedByTable(table).orElseThrow(() -> new IllegalStateException(
+                "No seated customer"));
 
-        // 2️⃣ Complete customer lifecycle
+        // 2 Complete customer lifecycle
         seated.markCompleted();
 
-        // 3️⃣ Free table
+        // 3 Free table
         table.markAvailable();
 
-        List<WaitEntry> waitingCustomers = waitEntryRepository.findNextEligibleForTable(
-                restaurant,
-                table.getCapacity(),
-                table.isFamilyOnly(), PageRequest.of(0, 1)
-        );
+        List<WaitEntry> waitingCustomers = waitEntryRepository.findNextEligibleForTable(restaurant,
+                table.getCapacity(), table.isFamilyOnly(), PageRequest.of(0, 1));
 
         if (waitingCustomers.isEmpty()) {
             return Optional.empty();
@@ -188,10 +190,7 @@ public class TableServiceImpl implements TableService {
         entry.markNotified(table);
         table.markReserved();
 
-        return Optional.of(
-                mapper.toTableAllocationResponse(entry, table)
-        );
+        return Optional.of(mapper.toTableAllocationResponse(entry, table));
     }
 
- 
 }

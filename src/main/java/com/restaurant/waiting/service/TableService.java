@@ -19,9 +19,10 @@ public interface TableService {
 
     void seatCustomer(String restaurantCode, Long tableId);
 
-
     Optional<TableAllocationResponse> allocate(String restaurantCode, Long tableId);
 
     Optional<TableAllocationResponse> releaseAndAllocate(String restaurantCode, Long tableId);
- 
+
+    void forceNotify(String restaurantCode, Long tableId, String trackingCode);
+
 }
