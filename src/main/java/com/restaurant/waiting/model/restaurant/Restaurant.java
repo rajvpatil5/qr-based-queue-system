@@ -1,4 +1,4 @@
-package com.restaurant.waiting.model;
+package com.restaurant.waiting.model.restaurant;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Table;

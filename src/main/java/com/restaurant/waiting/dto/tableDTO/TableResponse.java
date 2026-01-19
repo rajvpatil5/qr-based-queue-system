@@ -1,6 +1,6 @@
 package com.restaurant.waiting.dto.tableDTO;
 
-import com.restaurant.waiting.model.TableStatus;
+import com.restaurant.waiting.model.table.TableStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,8 +10,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TableResponse {
     Long id;
+
     Integer tableNumber;
+
     Integer capacity;
+
     TableStatus status;
+
     boolean ladiesOnly;
 }

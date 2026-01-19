@@ -1,12 +1,15 @@
 package com.restaurant.waiting.controller.admin;
 
+import com.restaurant.waiting.dto.entryDTO.CustomerResponse;
 import com.restaurant.waiting.dto.tableDTO.TableAllocationResponse;
 import com.restaurant.waiting.dto.tableDTO.TableBulkCreateRequest;
 import com.restaurant.waiting.dto.tableDTO.TableResponse;
+import com.restaurant.waiting.model.waitEntry.WaitStatus;
 import com.restaurant.waiting.service.TableService;
 import com.restaurant.waiting.service.WaitEntryService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +25,7 @@ import java.util.List;
 public class TableAdminController {
 
     private final TableService tableService;
+
     private final WaitEntryService waitEntryService;
 
     public TableAdminController(TableService tableService, WaitEntryService waitEntryService) {
@@ -71,6 +75,22 @@ public class TableAdminController {
     @GetMapping
     public ResponseEntity<List<TableResponse>> list(@PathVariable String restaurantCode) {
         return ResponseEntity.ok(tableService.findAll(restaurantCode));
+    }
+
+    //    To fetch the list of all customers by their waiting status
+    @GetMapping("/customers")
+    public Page<CustomerResponse> getCustomersByStatus(
+            @PathVariable String restaurantCode,
+            @RequestParam WaitStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return waitEntryService.getCustomersByStatus(
+                restaurantCode,
+                status,
+                page,
+                size
+        );
     }
 
 }

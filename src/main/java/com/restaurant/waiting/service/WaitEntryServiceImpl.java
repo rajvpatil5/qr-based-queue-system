@@ -4,7 +4,10 @@ import com.restaurant.waiting.dto.entryDTO.*;
 import com.restaurant.waiting.exception.DuplicateEntryException;
 import com.restaurant.waiting.exception.ResourceNotFoundException;
 import com.restaurant.waiting.mapper.WaitEntryMapper;
-import com.restaurant.waiting.model.*;
+import com.restaurant.waiting.model.restaurant.Restaurant;
+import com.restaurant.waiting.model.table.Table;
+import com.restaurant.waiting.model.waitEntry.WaitEntry;
+import com.restaurant.waiting.model.waitEntry.WaitStatus;
 import com.restaurant.waiting.repository.TableRepository;
 import com.restaurant.waiting.repository.WaitEntryRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
-import static com.restaurant.waiting.model.WaitStatus.WAITING;
+import static com.restaurant.waiting.model.waitEntry.WaitStatus.WAITING;
 
 /**
  * Service layer for managing wait entries and queue operations
@@ -30,8 +33,11 @@ import static com.restaurant.waiting.model.WaitStatus.WAITING;
 public class WaitEntryServiceImpl implements WaitEntryService {
 
     private final WaitEntryRepository waitEntryRepository;
+
     private final WaitEntryMapper mapper;
+
     private final RestaurantService restaurantService;
+
     private final TableRepository tableRepository;
 
     @Value("${app.waiting.avg-time-per-table-minutes:20}")
@@ -59,10 +65,13 @@ public class WaitEntryServiceImpl implements WaitEntryService {
      *
      * @return
      */
-    public WaitEntryResponse updateInfo(WaitEntryUpdateRequest updateRequest, String trackingCode, String restaurantCode) {
+    public WaitEntryResponse updateInfo(WaitEntryUpdateRequest updateRequest, String trackingCode,
+                                        String restaurantCode) {
         log.info("WaitEntryService::updateInfo -> updateRequest = {}", updateRequest);
-        restaurantService.getOrThrow(restaurantCode);
-        WaitEntry waitEntry = waitEntryRepository.findByTrackingCode(trackingCode).orElseThrow(() -> new RuntimeException("User not found"));
+        restaurantService.getOrThrowPublic(restaurantCode);
+        WaitEntry waitEntry =
+                waitEntryRepository.findByTrackingCode(trackingCode).orElseThrow(() -> new RuntimeException("User not" +
+                        " found"));
 
         if (waitEntry.getStatus() != WaitStatus.WAITING) {
             throw new IllegalStateException("Cannot modify after notification");
@@ -79,12 +88,12 @@ public class WaitEntryServiceImpl implements WaitEntryService {
 
     @Override
     public StatusResponse getStatusByTrackingCode(String restaurantCode, String trackingCode) {
-        Restaurant restaurant = restaurantService.getOrThrow(restaurantCode);
-        WaitEntry waitEntry = waitEntryRepository.findByRestaurantAndTrackingCode(restaurant, trackingCode).orElseThrow(() -> new RuntimeException("Invalid tracking code"));
+        Restaurant restaurant = restaurantService.getOrThrowPublic(restaurantCode);
+        WaitEntry waitEntry =
+                waitEntryRepository.findByRestaurantAndTrackingCode(restaurant, trackingCode).orElseThrow(() -> new RuntimeException("Invalid tracking code"));
         Integer position = null;
         Integer eta = null;
         Table table = null;
-
 
         if (waitEntry.getStatus() == WaitStatus.WAITING) {
             position = calculatePosition(waitEntry);
@@ -97,11 +106,11 @@ public class WaitEntryServiceImpl implements WaitEntryService {
         return mapper.toStatusResponse(waitEntry, position, eta, table);
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public List<WaitListItemResponse> getActiveQueue() {
-        List<WaitEntry> waitingEntries = waitEntryRepository.findByStatusInOrderByJoinedAtAsc(List.of(WAITING, WaitStatus.NOTIFIED));
+        List<WaitEntry> waitingEntries = waitEntryRepository.findByStatusInOrderByJoinedAtAsc(List.of(WAITING,
+                WaitStatus.NOTIFIED));
         List<WaitListItemResponse> waitingList = waitingEntries.stream().map(entry -> {
             Integer position = entry.getStatus() == WAITING
                     ? calculatePosition(entry)
@@ -127,7 +136,7 @@ public class WaitEntryServiceImpl implements WaitEntryService {
                     "Active waiting entry already exists for this mobile"
             );
         }
-        Restaurant restaurant = restaurantService.getOrThrow(restaurantCode);
+        Restaurant restaurant = restaurantService.getOrThrowPublic(restaurantCode);
 
         WaitEntry entry = mapper.toEntity(request);
         entry.setRestaurant(restaurant);
@@ -147,12 +156,11 @@ public class WaitEntryServiceImpl implements WaitEntryService {
         return mapper.toResponse(entry, position, eta);
     }
 
-
     /**
      * Customer cancels their own entry
      */
     public void cancelWaitEntry(String restaurantCode, String trackingCode) {
-        restaurantService.getOrThrow(restaurantCode);
+        restaurantService.getOrThrowPublic(restaurantCode);
 
         WaitEntry entry = waitEntryRepository.findByTrackingCode(trackingCode)
                 .orElseThrow(() ->
@@ -194,7 +202,7 @@ public class WaitEntryServiceImpl implements WaitEntryService {
             int page,
             int size
     ) {
-        Restaurant restaurant = restaurantService.getOrThrow(restaurantCode);
+        Restaurant restaurant = restaurantService.getOrThrowPublic(restaurantCode);
 
         PageRequest pageRequest = PageRequest.of(
                 page,

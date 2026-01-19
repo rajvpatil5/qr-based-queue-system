@@ -1,7 +1,7 @@
 package com.restaurant.waiting.controller.publicapi;
 
 import com.restaurant.waiting.dto.entryDTO.*;
-import com.restaurant.waiting.model.WaitStatus;
+import com.restaurant.waiting.model.waitEntry.WaitStatus;
 import com.restaurant.waiting.service.WaitEntryService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -32,25 +32,10 @@ public class WaitingPublicController {
                 .body(waitEntryService.joinQueue(request, restaurantCode));
     }
 
-
     @GetMapping("/{trackingCode}/status")
-    public ResponseEntity<StatusResponse> getStatus(@PathVariable String restaurantCode, @PathVariable String trackingCode) {
+    public ResponseEntity<StatusResponse> getStatus(@PathVariable String restaurantCode,
+                                                    @PathVariable String trackingCode) {
         return ResponseEntity.ok(waitEntryService.getStatusByTrackingCode(restaurantCode, trackingCode)
-        );
-    }
-
-    @GetMapping
-    public Page<CustomerResponse> getCustomersByStatus(
-            @PathVariable String restaurantCode,
-            @RequestParam WaitStatus status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
-    ) {
-        return waitEntryService.getCustomersByStatus(
-                restaurantCode,
-                status,
-                page,
-                size
         );
     }
 
@@ -58,7 +43,8 @@ public class WaitingPublicController {
     public ResponseEntity<WaitEntryResponse> updateInfo(@Valid @RequestBody WaitEntryUpdateRequest waitEntryUpdateRequest, @PathVariable String restaurantCode, @PathVariable String trackingCode) {
         log.info("WaitingPublicController::updateInfo -> waitEntryUpdateRequest = {}", waitEntryUpdateRequest);
 
-        WaitEntryResponse waitEntryResponseDTO = waitEntryService.updateInfo(waitEntryUpdateRequest, trackingCode, restaurantCode);
+        WaitEntryResponse waitEntryResponseDTO = waitEntryService.updateInfo(waitEntryUpdateRequest, trackingCode,
+                restaurantCode);
         return ResponseEntity.ok(waitEntryResponseDTO);
     }
 
@@ -66,7 +52,8 @@ public class WaitingPublicController {
      * Cancel an entry from the admin side (e.g., user left).
      */
     @DeleteMapping("/{trackingCode}")
-    public ResponseEntity<Void> cancelWaitEntry(@PathVariable String restaurantCode, @PathVariable String trackingCode) {
+    public ResponseEntity<Void> cancelWaitEntry(@PathVariable String restaurantCode,
+                                                @PathVariable String trackingCode) {
         log.info("[ADMIN][WAITING] Cancelling wait entry ID: {}", trackingCode);
         waitEntryService.cancelWaitEntry(restaurantCode, trackingCode);
         return ResponseEntity.noContent().build();

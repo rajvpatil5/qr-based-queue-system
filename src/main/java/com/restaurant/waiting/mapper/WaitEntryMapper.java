@@ -1,8 +1,8 @@
 package com.restaurant.waiting.mapper;
 
 import com.restaurant.waiting.dto.entryDTO.*;
-import com.restaurant.waiting.model.Table;
-import com.restaurant.waiting.model.WaitEntry;
+import com.restaurant.waiting.model.table.Table;
+import com.restaurant.waiting.model.waitEntry.WaitEntry;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -46,7 +46,6 @@ public interface WaitEntryMapper {
     @Mapping(target = "assignedTable", ignore = true)
     @Mapping(target = "trackingCode", ignore = true)
     void updateEntityFromRequest(WaitEntryUpdateRequest request, @MappingTarget WaitEntry entity);
-
 
     WaitListItemResponse toWaitListItem(
             WaitEntry entry,

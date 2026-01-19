@@ -3,8 +3,9 @@ package com.restaurant.waiting.service;
 import com.restaurant.waiting.dto.restaurantDTO.RestaurantCreateRequestDTO;
 import com.restaurant.waiting.dto.restaurantDTO.RestaurantResponseDTO;
 import com.restaurant.waiting.mapper.RestaurantMapper;
-import com.restaurant.waiting.model.Restaurant;
+import com.restaurant.waiting.model.restaurant.Restaurant;
 import com.restaurant.waiting.repository.RestaurantRepository;
+import com.restaurant.waiting.security.AuthContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,10 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 public class RestaurantServiceImpl implements RestaurantService {
+    private final AuthContext authContext;
+
     public RestaurantRepository restaurantRepository;
+
     public RestaurantMapper mapper;
 
     // Create restaurant
@@ -33,9 +37,17 @@ public class RestaurantServiceImpl implements RestaurantService {
         return mapper.toRestaurantResponse(restaurantRepository.save(r));
     }
 
-
     public Restaurant getOrThrow(String restaurantCode) {
-        return restaurantRepository.findByRestaurantCode(restaurantCode).orElseThrow(() -> new RuntimeException("Restaurant Not Found."));
+
+        Restaurant restaurant = authContext.requireRestaurant(restaurantCode);
+//        return restaurantRepository.findByRestaurantCode(restaurantCode).orElseThrow(() -> new RuntimeException(
+//                "Restaurant Not Found."));
+        return restaurant;
+    }
+
+    public Restaurant getOrThrowPublic(String restaurantCode) {
+        return restaurantRepository.findByRestaurantCode(restaurantCode).orElseThrow(() -> new RuntimeException(
+                "Restaurant Not Found."));
     }
 
     // Get single restaurant
@@ -57,7 +69,8 @@ public class RestaurantServiceImpl implements RestaurantService {
         return mapper.toRestaurantResponse(dbRestaurant);
     }
 
-    public RestaurantResponseDTO updateRestaurant(String restaurantCode, RestaurantCreateRequestDTO restaurantCreateRequestDTO) {
+    public RestaurantResponseDTO updateRestaurant(String restaurantCode,
+                                                  RestaurantCreateRequestDTO restaurantCreateRequestDTO) {
         Restaurant restaurant = getOrThrow(restaurantCode);
         mapper.updateRestaurantEntityFromRequest(restaurantCreateRequestDTO, restaurant);
         return mapper.toRestaurantResponse(restaurant);

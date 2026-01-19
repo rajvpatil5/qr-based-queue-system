@@ -20,6 +20,7 @@ public class RestaurantController {
 
     private final RestaurantService restaurantService;
 
+    // register and create restaurant
     @PostMapping
     public ResponseEntity<RestaurantResponseDTO> create(
             @Valid @RequestBody RestaurantCreateRequestDTO req) {
@@ -31,11 +32,10 @@ public class RestaurantController {
         return ResponseEntity.status(HttpStatus.CREATED).body(restaurantService.activate(restaurantCode));
     }
 
-
-    @GetMapping
-    public ResponseEntity<List<RestaurantResponseDTO>> list() {
-        return ResponseEntity.ok().body(restaurantService.getRestaurantList());
-    }
+//    @GetMapping
+//    public ResponseEntity<List<RestaurantResponseDTO>> list() {
+//        return ResponseEntity.ok().body(restaurantService.getRestaurantList());
+//    }
 
     @GetMapping("/{restaurantCode}")
     public ResponseEntity<RestaurantResponseDTO> get(@PathVariable String restaurantCode) {
@@ -43,7 +43,8 @@ public class RestaurantController {
     }
 
     @PutMapping("/{restaurantCode}")
-    public ResponseEntity<RestaurantResponseDTO> updateRestaurant(@PathVariable String restaurantCode, @Valid @RequestBody RestaurantCreateRequestDTO restaurantCreateRequestDTO) {
+    public ResponseEntity<RestaurantResponseDTO> updateRestaurant(@PathVariable String restaurantCode,
+                                                                  @Valid @RequestBody RestaurantCreateRequestDTO restaurantCreateRequestDTO) {
         return ResponseEntity.ok(restaurantService.updateRestaurant(restaurantCode, restaurantCreateRequestDTO));
     }
 

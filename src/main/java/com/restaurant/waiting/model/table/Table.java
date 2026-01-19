@@ -1,5 +1,6 @@
-package com.restaurant.waiting.model;
+package com.restaurant.waiting.model.table;
 
+import com.restaurant.waiting.model.restaurant.Restaurant;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -66,5 +67,5 @@ public class Table {
         }
         this.status = TableStatus.OCCUPIED;
     }
-     
+
 }

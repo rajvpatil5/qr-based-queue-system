@@ -1,9 +1,9 @@
 package com.restaurant.waiting.repository;
 
-import com.restaurant.waiting.model.Restaurant;
-import com.restaurant.waiting.model.Table;
-import com.restaurant.waiting.model.WaitEntry;
-import com.restaurant.waiting.model.WaitStatus;
+import com.restaurant.waiting.model.restaurant.Restaurant;
+import com.restaurant.waiting.model.table.Table;
+import com.restaurant.waiting.model.waitEntry.WaitEntry;
+import com.restaurant.waiting.model.waitEntry.WaitStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,11 +39,8 @@ public interface WaitEntryRepository extends JpaRepository<WaitEntry, Long> {
     );
 
     /**
-     * Find the next eligible waiting entry for a table.
-     * - FIFO (joinedAt ASC)
-     * - Capacity respected
-     * - Ladies-only enforced when required
-     * - Row is pessimistically locked to avoid double notification
+     * Find the next eligible waiting entry for a table. - FIFO (joinedAt ASC) - Capacity respected - Ladies-only
+     * enforced when required - Row is pessimistically locked to avoid double notification
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
@@ -60,16 +57,13 @@ public interface WaitEntryRepository extends JpaRepository<WaitEntry, Long> {
             @Param("familyOnly") boolean familyOnly, Pageable pageable
     );
 
-
     /**
      * Prevent duplicate active waiting entries per mobile number
      */
     boolean existsByMobileAndStatus(String mobile, WaitStatus status);
 
-
     /**
-     * Count how many WAITING entries joined before this entry.
-     * Used to calculate queue position.
+     * Count how many WAITING entries joined before this entry. Used to calculate queue position.
      */
     @Query("""
                 SELECT COUNT(w)
@@ -108,6 +102,5 @@ public interface WaitEntryRepository extends JpaRepository<WaitEntry, Long> {
                   and w.status = 'SEATED'
             """)
     Optional<WaitEntry> findSeatedByTable(@Param("table") Table table);
-
 
 }

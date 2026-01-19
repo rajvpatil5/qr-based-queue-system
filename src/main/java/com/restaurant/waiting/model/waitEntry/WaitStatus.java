@@ -1,4 +1,4 @@
-package com.restaurant.waiting.model;
+package com.restaurant.waiting.model.waitEntry;
 
 /**
  * Enum representing the status of a wait entry in the queue

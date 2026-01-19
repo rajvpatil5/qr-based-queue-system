@@ -1,4 +1,4 @@
-package com.restaurant.waiting.model;
+package com.restaurant.waiting.model.table;
 
 public enum TableStatus {
     AVAILABLE,

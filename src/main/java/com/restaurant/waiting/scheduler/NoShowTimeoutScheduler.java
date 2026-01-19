@@ -1,8 +1,8 @@
 package com.restaurant.waiting.scheduler;
 
-import com.restaurant.waiting.model.Table;
-import com.restaurant.waiting.model.TableStatus;
-import com.restaurant.waiting.model.WaitEntry;
+import com.restaurant.waiting.model.table.Table;
+import com.restaurant.waiting.model.table.TableStatus;
+import com.restaurant.waiting.model.waitEntry.WaitEntry;
 import com.restaurant.waiting.repository.TableRepository;
 import com.restaurant.waiting.repository.WaitEntryRepository;
 import com.restaurant.waiting.service.TableService;
@@ -23,15 +23,16 @@ import java.util.List;
 public class NoShowTimeoutScheduler {
 
     private final WaitEntryRepository waitEntryRepository;
+
     private final TableRepository tableRepository;
+
     private final TableService tableService;
 
     @Value("${app.waiting.no-show-timeout-minutes:5}")
     private int noShowTimeoutMinutes;
 
     /**
-     * Runs every minute
-     * Handles customers who were notified but never showed up
+     * Runs every minute Handles customers who were notified but never showed up
      */
     @Scheduled(fixedDelay = 60_000)
     @Transactional

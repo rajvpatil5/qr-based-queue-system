@@ -2,8 +2,8 @@ package com.restaurant.waiting.mapper;
 
 import com.restaurant.waiting.dto.tableDTO.TableAllocationResponse;
 import com.restaurant.waiting.dto.tableDTO.TableResponse;
-import com.restaurant.waiting.model.Table;
-import com.restaurant.waiting.model.WaitEntry;
+import com.restaurant.waiting.model.table.Table;
+import com.restaurant.waiting.model.waitEntry.WaitEntry;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

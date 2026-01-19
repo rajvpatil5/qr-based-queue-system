@@ -1,5 +1,7 @@
-package com.restaurant.waiting.model;
+package com.restaurant.waiting.model.waitEntry;
 
+import com.restaurant.waiting.model.restaurant.Restaurant;
+import com.restaurant.waiting.model.table.Table;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -85,7 +87,7 @@ public class WaitEntry {
     }
 
     // ===== Domain actions =====
-    public void markNotified(Table table) {
+    public void markNotified(com.restaurant.waiting.model.table.Table table) {
         if (status != WaitStatus.WAITING) {
             throw new IllegalStateException("Only WAITING entry can be notified");
         }
@@ -95,7 +97,7 @@ public class WaitEntry {
         this.assignedTable = table;
     }
 
-    public void markForcedNotified(Table table) {
+    public void markForcedNotified(com.restaurant.waiting.model.table.Table table) {
         validateSameRestaurant(table);
         this.status = WaitStatus.NOTIFIED;
         this.notifiedAt = Instant.now();
@@ -131,7 +133,7 @@ public class WaitEntry {
         this.completedAt = Instant.now();
     }
 
-    private void validateSameRestaurant(Table table) {
+    private void validateSameRestaurant(com.restaurant.waiting.model.table.Table table) {
         if (this.restaurant == null) {
             throw new IllegalStateException("WaitEntry is not associated with a restaurant");
         }
@@ -143,7 +145,7 @@ public class WaitEntry {
         }
     }
 
-    public void forceSeat(Table table) {
+    public void forceSeat(com.restaurant.waiting.model.table.Table table) {
         if (this.status == WaitStatus.SEATED) {
             throw new IllegalStateException("Customer already seated");
         }

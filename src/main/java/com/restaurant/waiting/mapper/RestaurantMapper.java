@@ -2,7 +2,7 @@ package com.restaurant.waiting.mapper;
 
 import com.restaurant.waiting.dto.restaurantDTO.RestaurantCreateRequestDTO;
 import com.restaurant.waiting.dto.restaurantDTO.RestaurantResponseDTO;
-import com.restaurant.waiting.model.Restaurant;
+import com.restaurant.waiting.model.restaurant.Restaurant;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;

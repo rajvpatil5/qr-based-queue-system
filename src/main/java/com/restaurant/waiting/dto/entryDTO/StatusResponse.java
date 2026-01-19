@@ -1,6 +1,6 @@
 package com.restaurant.waiting.dto.entryDTO;
 
-import com.restaurant.waiting.model.WaitStatus;
+import com.restaurant.waiting.model.waitEntry.WaitStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,9 +14,14 @@ import lombok.NoArgsConstructor;
 public class StatusResponse {
 
     private Long id;
+
     private WaitStatus status;
+
     private Integer position;
+
     private Integer estimatedMinutes;
+
     private Integer tableNumber;   // ✅ SIMPLE, SAFE
+
     private String message;
 }

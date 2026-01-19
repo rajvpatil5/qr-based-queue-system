@@ -1,6 +1,6 @@
 package com.restaurant.waiting.repository;
 
-import com.restaurant.waiting.model.Restaurant;
+import com.restaurant.waiting.model.restaurant.Restaurant;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

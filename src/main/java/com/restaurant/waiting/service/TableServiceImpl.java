@@ -4,7 +4,11 @@ import com.restaurant.waiting.dto.tableDTO.TableAllocationResponse;
 import com.restaurant.waiting.dto.tableDTO.TableBulkCreateRequest;
 import com.restaurant.waiting.dto.tableDTO.TableResponse;
 import com.restaurant.waiting.mapper.TableMapper;
-import com.restaurant.waiting.model.*;
+import com.restaurant.waiting.model.restaurant.Restaurant;
+import com.restaurant.waiting.model.table.Table;
+import com.restaurant.waiting.model.table.TableStatus;
+import com.restaurant.waiting.model.waitEntry.WaitEntry;
+import com.restaurant.waiting.model.waitEntry.WaitStatus;
 import com.restaurant.waiting.repository.RestaurantRepository;
 import com.restaurant.waiting.repository.TableRepository;
 import com.restaurant.waiting.repository.WaitEntryRepository;
@@ -25,9 +29,13 @@ import java.util.Optional;
 public class TableServiceImpl implements TableService {
 
     private final TableRepository tableRepository;
+
     private final RestaurantRepository restaurantRepository;
+
     private final RestaurantService restaurantService;
+
     private final WaitEntryRepository waitEntryRepository;
+
     private final TableMapper mapper;
 
     @Transactional
